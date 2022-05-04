@@ -1,0 +1,13 @@
+
+- ConfigFile Loaded into dictionary
+- server class initilized with configdictionary
+- Initial Join Command Sent to server
+    - If Node Isnt in configdictionary, Send Kill Back to Client
+    - Client is Killed
+- If Client in configdictionary
+    - Send clients neighbor values 
+    - Client Runs DV algorithm 
+    - Client Sends back to Server with UPDATE command
+        - If Server Detects changes in values from its stored map, updates and sends to its neighbors
+- If Client recieves UPDATE command
+    - runs DV and sends UPDATE back to Server
