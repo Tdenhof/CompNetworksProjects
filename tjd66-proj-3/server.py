@@ -1,5 +1,4 @@
-from json import load
-from turtle import update
+
 import pandas as pd
 import sys
 import util
@@ -59,6 +58,7 @@ def main(configFile):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP socket 
     sock.bind((host,port))
     while True:
+        print('waiting for clients to connect...')
         rdata, addr = sock.recvfrom(1024)
         if not rdata:
             continue
