@@ -59,7 +59,7 @@ def main(configFile):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP socket 
     sock.bind((host,port))
     while True:
-        rdata, addr = sock.rcv(1024)
+        rdata, addr = sock.recvfrom(1024)
         if not rdata:
             continue
         else:
