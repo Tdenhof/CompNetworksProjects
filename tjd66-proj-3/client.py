@@ -49,14 +49,12 @@ class Client:
                         distance[n] = min(distance[n], distance[v] + self.lft[v][n] )
         return distance
     
+    #APply Bellman Ford and manage updating local forwarding table and the items needed to be updated to tell other nodes
     def update(self):
-        # Keep track of previous local forwarding table to detect if any changes were made 
         self.previous = self.lft
         updates = self.bf()
-        #Check for any changes 
         self.lft[self.node] = updates
         self.newvps = updates
-        #If there is a change, forward to the neighbor nodes 
         self.command = 'UPDATE'
         
     
@@ -74,7 +72,6 @@ class Client:
                 self.neighborUpdates[updatingNode] = updatingVPs
                 self.lft[updatingNode] = updatingVPs
                 self.update()
-        #If the message is an initial update... don't check for changes and just add to lft
 
     
     #Check to see if any values of neighbor node has changed, return true if yes, false if no

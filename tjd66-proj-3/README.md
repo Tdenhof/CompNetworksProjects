@@ -1,21 +1,34 @@
 # Project 3 - Distance Vector Algorithm
-
+* In this project Node = routerID as it was easeier to write node instead of routerID everytime. Consider them the same.
 ## To Run:
 cd into tjd66-proj-3
 
 Initialize Server First.
+Imports Used... Use Python Env that can handle these packages whether that be python3 or python. For my machine, I needed python3
+'''
+import pandas as pd
+import sys
+import util
+import socket
+import time
+import ast
+import pickle 
+'''
 
 ### Server
-Example using proj3examplecsv-3.csv as config file 
+Example using proj3examplecsv-3.csv as config file using python3 
 ```
-python server.py proj3examplecsv-3.csv
+python3 server.py proj3examplecsv-3.csv
 ```
 
 ### Client(s)
 Example using node value 'u'
 ```
-python client.py u
+python3 client.py u
 ```
+For example, to run the config file above I needed 7 total terminals open in VSCode...
+1 for server, 1 for each (6) clients.
+
 
 Client node value must be in the config file passed through the server. Otherwise, Client will be inactive in DV algorithm.
 
