@@ -5,7 +5,7 @@ cd into tjd66-proj-3
 
 Initialize Server First.
 Imports Used... Use Python Env that can handle these packages whether that be python3 or python. For my machine, I needed python3
-'''
+```
 import pandas as pd
 import sys
 import util
@@ -13,7 +13,7 @@ import socket
 import time
 import ast
 import pickle 
-'''
+```
 
 ### Server
 Example using proj3examplecsv-3.csv as config file using python3 
