@@ -3,11 +3,6 @@ import pandas as pd
 import sys
 import util
 import socket
-import types
-import selectors
-# import thread module
-from _thread import *
-import threading
 import time
 
 
@@ -23,15 +18,18 @@ class server:
         #value pair map 
         self.unchangedCounter = dict.fromkeys(initmap,0)
         self.unchangedBool = dict.fromkeys(initmap,False)
-
+        #Value Pair Map 
         self.vpmap = initmap
+        #Custom Server State
         self.state = 'WAITING'
+        #All Nodes Present in list 
         self.nodesPresent = self.createNodeList(initmap)
     def createNodeList(self,initmap):
         nodesPresent = {}
         for key in initmap:
             nodesPresent[key] = False
         return nodesPresent
+    
     def join(self,newNode,addr):
         if newNode in self.initmap.keys():
             #SET Current Map Values upon join
