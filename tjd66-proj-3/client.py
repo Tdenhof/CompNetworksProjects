@@ -15,13 +15,13 @@ class Client:
         #obtain list of neighbors from initial map, should never change.
         self.neighbors = []
         self.firstContact = True
+        self.neighborUpdates = {}
     
     def initrcv(self,initvp):
         self.lft = initvp
-        self.neighbors = findNeighbors(initvp,self.node)
         # on initial contact, server only sends the node pairs of each nodes neighbors... so we can set the updatedVPs to lft to forward to all neighbors
         self.updatedVPs = self.lft
-        self.command = 'INITUPDATE'
+        
 
 
     def buildMessage(self):
@@ -29,7 +29,8 @@ class Client:
             'command' : self.command,
             'node' : self.node,
             'updatedVPs' : self.newvps,
-            'neighbors' : self.neighbors
+            'neighbors' : self.neighbors,
+            'neighborUpdates' : self.neighborUpdates
         }
         return encodeData(m)
 
@@ -49,33 +50,39 @@ class Client:
         return distance
     
     def update(self):
-        self.newvps = self.bf()
         # Keep track of previous local forwarding table to detect if any changes were made 
         self.previous = self.lft
+        updates = self.bf()
         #Check for any changes 
-        if self.change(self.node,self.newvps):
-            self.lft[self.node] = self.newvps
-            self.command = 'UPDATE'
-        else: self.command = 'LISTENING'
+        self.lft[self.node] = updates
+        self.newvps = updates
+        #If there is a change, forward to the neighbor nodes 
+        self.command = 'UPDATE'
+        
     
     def rcvupdate(self,message):
         self.previous = self.lft
-        updatingNode = message['node']
-        updatingVPs = message['updatedVPs']
-        if message['command'] == 'UPDATE' and self.change(updatingNode,updatingVPs):
-            self.lft[updatingNode] = updatingVPs
+        if message['command'] == 'initVP':
+            self.lft = message['initlft']
+            self.neighbors = findNeighbors(self.lft,self.node)
             self.update()
+        else:
+            updatingNode = message['node']
+            updatingVPs = message['updatedVPs']
+            #If the message Command is update, and theres changes from the update to what the current lft is, then update our lft 
+            if message['command'] == 'UPDATE':
+                self.neighborUpdates[updatingNode] = updatingVPs
+                self.lft[updatingNode] = updatingVPs
+                self.update()
         #If the message is an initial update... don't check for changes and just add to lft
-        if message['command'] == 'INITUPDATE':
-            self.lft[updatingNode] = updatingVPs
-            self.update()
+
     
     #Check to see if any values of neighbor node has changed, return true if yes, false if no
     def change(self,updatingNode,updatingvps):
         valsToCheck = self.previous[updatingNode]
         changeVal = False
-        for key, value in valsToCheck:
-            if value != updatingvps[key]:
+        for key in valsToCheck.keys():
+            if valsToCheck[key] != updatingvps[key]:
                 changeVal = True
         return changeVal
                 
@@ -89,42 +96,30 @@ def main(node):
     serveraddress = (HOST,PORT)
     go = True
     client = Client(node)
-    starttime = time.time()
-    lastupdatetime = 0
-    nochangeupdate = 0
     while go:
         #Ask to join Server 
         if client.command == 'JOIN':
-            sent = sock.sendto(client.buildMessage(),serveraddress)
-            if sent:
-                client.command = 'LISTENING'
-
+            sock.sendto(client.buildMessage(),serveraddress)
+            client.command = 'LISTENING'
 
         #Listen for server 
         if client.command == 'LISTENING':
             rdata,addr = sock.recvfrom(1024)
             if rdata:
                 r = decodeData(rdata)
-                if r and client.firstContact == False:
-                    client.rcvupdate(r)
-                    if client.command == 'LISTENING':
-                        nochangeupdate += 1
-                        #If the last update time is greater than 1 minute
-                        if time.time() - lastupdatetime > 60:
-                            pass 
-                #Client just joined, should be recieving its vps from server... then forward to its neighbors
-                if r and client.firstContact == True:
-                    client.initrcv(r)
-                    sock.sendto(client.buildMessage(),serveraddress)
-                    client.firstContact = False
-            #If Client has an update send to server 
+                if r == 'Kill-node.error':
+                    go = False
+                    print('Router Killed because no node ' + client.node +' exists in server process')
+                elif r == 'Kill-update.final':
+                    print(client.lft)
+                    go = False
+                else: client.rcvupdate(r)
 
         if client.command == 'UPDATE':
-            sent = sock.sendto(client.buildMessage(),serveraddress)
-            if sent:
-                lastupdatetime = time.time()
-                client.command == 'LISTENING'
-
+            sock.sendto(client.buildMessage(),serveraddress)
+            client.command = 'LISTENING'
+    sock.close()
+    
 if __name__ == '__main__':
     if len(sys.argv) != 2: 
         sys.exit("Usage: python client.py [Node Value]")
